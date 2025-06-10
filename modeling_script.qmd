@@ -80,6 +80,8 @@ comb_model <- lm(PA ~ 0 + Strain + Inject_order, data = df)
 summary(comb_model)
 ```
 
+<br>
+
 The residuals are much smaller in the combined model and the adjusted R^2^ us higher. This tells us that the model with both strain and injection order as predictors fits the data better. Giving that the effect of injection order confounds our analysis of strain effect we will subtract the injecdtion order coefficient from the strain coefficients.
 
 **Extract the coefficient for the injection order and use this to calculate a corrected PA**
@@ -145,6 +147,8 @@ Let's start by plotted fitted values vs. residuals for both the strain only mode
 ```{r}
 # Get the residuals for this model and plot
 df$strain_only_resid <- residuals(strain_only_model)
+df$comb_resid <- residuals(comb_model)
+
 
 p1 <- ggplot(df, aes(x=PA, y=strain_only_resid)) +
   geom_point(size=2) +
@@ -172,10 +176,3 @@ interaction_model <- lm(PA ~ 0 + Strain + Strain:Inject_order, data = df)
 
 summary(interaction_model)
 ```
-
-```{r}
-
-
-```
-
-a -- the variance scales with the mean and is not constant across samples. Let's see if adding injection order fixes this issue.
