@@ -17,6 +17,7 @@ In analytical chemistry data there are often batch effects that confound data an
 
 library(tidyverse)
 library(kableExtra)
+library(cowplot)
 ```
 
 **Import the data and view the structure**
@@ -57,22 +58,36 @@ ggplot(df, aes(x=Inject_order, y=PA)) +
 
 ```
 
-There is a clear batch effect, with PAs increasing with injection order. I will correct this in two different ways. First I will create a linear model that estimates the batch effect across all samples.
+There is a clear batch effect, with PAs increasing with injection order. Let's first investigate whether we can capture this effect with a linear model. Let's first create a model that predicts PA as a function of strain alone.
 
-**Estimate batch effect across all samples**
+**Create the model using Strain as the only predictor**
 
 ```{r}
-# Create a model that includes both strain and injection order as predictors
-full_model <- lm(PA ~ 0 + Strain + Inject_order, data = df)
-summary(full_model)
+
+strain_only_model <- lm(PA ~ 0 + Strain, data = df)
+summary(strain_only_model)
 ```
 
-**Now extract the coefficient for the injection order and use this to calculate a corrected PA**
+<br>
+
+Next, let's see if a model that adds injection order fits the data better.
+
+**Make a model that predicts using strain and injection order**
+
+```{r}
+
+comb_model <- lm(PA ~ 0 + Strain + Inject_order, data = df)
+summary(comb_model)
+```
+
+The residuals are much smaller in the combined model and the adjusted R^2^ us higher. This tells us that the model with both strain and injection order as predictors fits the data better. Giving that the effect of injection order confounds our analysis of strain effect we will subtract the injecdtion order coefficient from the strain coefficients.
+
+**Extract the coefficient for the injection order and use this to calculate a corrected PA**
 
 ```{r}
 
 # extract the injection order coefficient 
-injection_order_coef <- coef(full_model)["Inject_order"]
+injection_order_coef <- coef(comb_model)["Inject_order"]
 
 # correct the PAs by subtracting (injection order coeffiient * injection order)
 df$PA_corrected <- df$PA - (injection_order_coef * df$Inject_order)
@@ -116,3 +131,51 @@ ggplot(df_long, aes(x=Strain, y=value)) +
 ```
 
 As expected, the boxplot shows that the variance among replicates is much better after the correction.
+
+### 
+
+### Further improvements
+
+When building linear models, it is critical to examine diagnostic plots that report how well your model fits the data. These plots can reveal issues with the model that are more challenging to identify by assessing model summary statistics. The most basic, and often the most informative of these plots is the fitted vs. residuals plot.
+
+Let's start by plotted fitted values vs. residuals for both the strain only model and the combined model.
+
+**Make Fitted vs Residuals plots**
+
+```{r}
+# Get the residuals for this model and plot
+df$strain_only_resid <- residuals(strain_only_model)
+
+p1 <- ggplot(df, aes(x=PA, y=strain_only_resid)) +
+  geom_point(size=2) +
+  ylim(-70,70) +
+  theme_bw() +
+  labs(title='strain_only_model', y='residual')
+
+p2 <- ggplot(df, aes(x=PA, y=comb_resid)) +
+  geom_point(size=2) +
+  ylim(-70,70) +
+  theme_bw() +
+  labs(title='comb_model', y='residual')
+
+# Combine plots
+plot_grid(p1, p2, ncol = 2)
+```
+
+Both plots reveal an issue with our models. The funnel-like shape of left plot shows heteroscedasticty where variance scales with the peak area. In the right plot, the overall variance is substantially reduced by included injection order as a predictor, but it is still heteroscedastic: Samples with intermediate peak areas have low variance relative to those with small or large peak areas. This suggests to me that the injection order coefficient that we subtracted away did represent the mean injection order effect, but that this mean was not a good estimate for the effect of injection order on samples with relatively small or large PAs.
+
+This suggests it may be better to determine an injection order coefficient for each train individually and subtract this coefficient from the peak areas for that strain.
+
+```{r}
+
+interaction_model <- lm(PA ~ 0 + Strain + Strain:Inject_order, data = df)
+
+summary(interaction_model)
+```
+
+```{r}
+
+
+```
+
+a -- the variance scales with the mean and is not constant across samples. Let's see if adding injection order fixes this issue.
