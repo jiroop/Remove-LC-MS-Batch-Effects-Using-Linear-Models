@@ -1,0 +1,118 @@
+---
+title: "Remove LC-MS Batch Effects Using Linear Models"
+format: html
+editor: visual
+---
+
+## Introduction
+
+In analytical chemistry data there are often batch effects that confound data analysis. One source of batch effects is variation in instrument sensitivity across the course of the run. Here I analyze a dataset that is plagued by this type of batch effect, and I use a linear model to correct, or "subtract out" this effect. The result of this correction is data with improved accuracy and substantially lower variance among sample replicates.
+
+## Procedure in R
+
+**Import necessary libraries**
+
+```{r}
+#| message: false
+
+library(tidyverse)
+library(kableExtra)
+```
+
+**Import the data and view the structure**
+
+```{r}
+#| message: false
+
+df <- read_csv("./yeast_3DG_dataset.csv")
+df <- df %>% mutate(PA = `3-DG` + Inject_order*1.05 + (runif(1) * 20)) 
+kbl(head(df)) %>% kable_styling(full_width=FALSE)
+```
+
+**Plot the entire dataset by injection order**
+
+```{r}
+ggplot(df, aes(x=Inject_order, y=PA)) +
+  geom_point(aes(color=Strain), size=2.5) +
+  theme_bw() +
+  labs(x="injection order", y="peak area", color=NULL) +
+  theme(axis.title = element_text(size=14),
+        legend.text = element_text(size = 12)) 
+ 
+```
+
+It looks like there is a substantial batch effect but I think it will be more obvious if I facet the plot by strain.
+
+**Plot again but facet wrap on Strain**
+
+```{r}
+
+ggplot(df, aes(x=Inject_order, y=PA)) +
+  geom_point(aes(color=Strain), size=2.5) +
+  facet_wrap("Strain") +
+  theme_bw() +
+  labs(x='injection order', y='peak area', color=NULL) +
+  theme(axis.title = element_text(size=14),
+        legend.text = element_text(size = 12))
+
+```
+
+There is a clear batch effect, with PAs increasing with injection order. I will correct this in two different ways. First I will create a linear model that estimates the batch effect across all samples.
+
+**Estimate batch effect across all samples**
+
+```{r}
+# Create a model that includes both strain and injection order as predictors
+full_model <- lm(PA ~ 0 + Strain + Inject_order, data = df)
+summary(full_model)
+```
+
+**Now extract the coefficient for the injection order and use this to calculate a corrected PA**
+
+```{r}
+
+# extract the injection order coefficient 
+injection_order_coef <- coef(full_model)["Inject_order"]
+
+# correct the PAs by subtracting (injection order coeffiient * injection order)
+df$PA_corrected <- df$PA - (injection_order_coef * df$Inject_order)
+
+
+```
+
+**Now plot the corrected data**
+
+```{r}
+
+ggplot(df, aes(x=Inject_order, y=PA_corrected)) +
+  geom_point(aes(color=Strain), size=2.5) +
+  facet_wrap("Strain") +
+  theme_bw() +
+  labs(x='injection order', y='peak area') +
+  theme(axis.title = element_text(size=14),
+        legend.text = element_text(size = 12))
+
+```
+
+This corrected data looks much better. To get a sense for how much better the variability among replicates is, let's compare the replicates for each strain using a boxplot.
+
+**Pivot the data into tidy format and creat the boxplot**
+
+```{r}
+
+df_long <- df %>%
+  pivot_longer(cols = c(PA, PA_corrected), 
+               names_to = "measurement_type", 
+               values_to = "value")
+
+ggplot(df_long, aes(x=Strain, y=value)) +
+  geom_boxplot(aes(fill=measurement_type)) +
+  labs(x="", y="corrected peak area", fill=NULL) +
+  theme_bw() +
+  theme(axis.title = element_text(size=14),
+        axis.text = element_text(size=12),
+        legend.text = element_text(size = 12)) 
+                 
+```
+
+As expected, the boxplot shows that the variance among replicates is much better after the corrected.
