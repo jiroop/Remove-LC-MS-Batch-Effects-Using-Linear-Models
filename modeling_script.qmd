@@ -115,4 +115,4 @@ ggplot(df_long, aes(x=Strain, y=value)) +
                  
 ```
 
-As expected, the boxplot shows that the variance among replicates is much better after the corrected.
+As expected, the boxplot shows that the variance among replicates is much better after the correction.
