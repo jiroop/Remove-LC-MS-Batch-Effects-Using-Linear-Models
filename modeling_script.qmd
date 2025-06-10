@@ -1,6 +1,8 @@
 ---
 title: "Remove LC-MS Batch Effects Using Linear Models"
-format: html
+format: 
+  html:
+    output-file: "index.html"
 editor: visual
 ---
 
