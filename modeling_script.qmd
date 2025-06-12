@@ -6,6 +6,8 @@ format:
 editor: visual
 ---
 
+<br>
+
 ## Introduction
 
 In analytical chemistry data there are often batch effects that confound data analysis. One source of batch effects is variation in instrument sensitivity across the course of the run. Here I analyze a dataset that is plagued by this type of batch effect, and I use a linear model to correct, or "subtract out" this effect. The result of this correction is data with improved accuracy and substantially lower variance among sample replicates.
@@ -22,7 +24,7 @@ library(kableExtra)
 library(cowplot)
 ```
 
-**Import the data and view the structure**
+<br>**Import the data and view the structure**
 
 ```{r}
 #| message: false
@@ -32,7 +34,7 @@ df <- df %>% mutate(PA = `3-DG` + Inject_order*1.05 + (runif(1) * 20))
 kbl(head(df)) %>% kable_styling(full_width=FALSE)
 ```
 
-**Plot the entire dataset by injection order**
+<br>**Plot the entire dataset by injection order**
 
 ```{r}
 ggplot(df, aes(x=Inject_order, y=PA)) +
@@ -46,7 +48,7 @@ ggplot(df, aes(x=Inject_order, y=PA)) +
 
 It looks like there is a substantial batch effect but I think it will be more obvious if I facet the plot by strain.
 
-**Plot again but facet wrap on Strain**
+<br>**Plot again but facet wrap on Strain**
 
 ```{r}
 
@@ -60,9 +62,9 @@ ggplot(df, aes(x=Inject_order, y=PA)) +
 
 ```
 
-There is a clear batch effect, with PAs increasing with injection order. Let's first investigate whether we can capture this effect with a linear model. Let's first create a model that predicts PA as a function of strain alone.
+There is a clear batch effect with PAs increasing with injection order. Let's first investigate whether we can capture this effect with a linear model. Let's first create a model that predicts PA as a function of strain alone.
 
-**Create the model using Strain as the only predictor**
+<br>**Create the model using Strain as the only predictor**
 
 ```{r}
 
@@ -70,11 +72,9 @@ strain_only_model <- lm(PA ~ 0 + Strain, data = df)
 summary(strain_only_model)
 ```
 
-<br>
+Next, let's see if a model that adds injection order as a global batch effect fits the data better.
 
-Next, let's see if a model that adds injection order fits the data better.
-
-**Make a model that predicts using strain and injection order**
+<br>**Make a model that predicts using strain and injection order**
 
 ```{r}
 
@@ -82,11 +82,18 @@ comb_model <- lm(PA ~ 0 + Strain + Inject_order, data = df)
 summary(comb_model)
 ```
 
-<br>
+The residuals are much smaller in the combined model and the adjusted R^2^ is higher. This tells us that the model with both strain and a global injection order paramater as predictors fits the data better. We can confirm this with an ANOVA test. We use the ANOVA test here because the strain_only_model is a subset of the comb_model (you can get the strain_only_model by setting the Inject_order parameter to 0 in the comb_model). Note that the anova function will only tell us if the two models are significantly different, i.e. one fits the data significantly better than the other. If we get a significant p-value, this indicates that the model with more parameters is indeed a better fit.
 
-The residuals are much smaller in the combined model and the adjusted R^2^ us higher. This tells us that the model with both strain and injection order as predictors fits the data better. Giving that the effect of injection order confounds our analysis of strain effect we will subtract the injecdtion order coefficient from the strain coefficients.
+<br>**Perform the ANOVA**
 
-**Extract the coefficient for the injection order and use this to calculate a corrected PA**
+```{r}
+
+anova(strain_only_model, comb_model)
+```
+
+The two models are significantly different and the comb_model is a better fit to the data. We now know that injection order definitely confounds our analysis. Next we will proceed to subtract out the effects of injection order.
+
+<br>**Extract the coefficient for the injection order and use this to calculate a corrected PA**
 
 ```{r}
 
@@ -94,16 +101,16 @@ The residuals are much smaller in the combined model and the adjusted R^2^ us hi
 injection_order_coef <- coef(comb_model)["Inject_order"]
 
 # correct the PAs by subtracting (injection order coeffiient * injection order)
-df$PA_corrected <- df$PA - (injection_order_coef * df$Inject_order)
+df$PA_inj_order_corr <- df$PA - (injection_order_coef * df$Inject_order)
 
 
 ```
 
-**Now plot the corrected data**
+<br>**Now plot the corrected data**
 
 ```{r}
 
-ggplot(df, aes(x=Inject_order, y=PA_corrected)) +
+ggplot(df, aes(x=Inject_order, y=PA_inj_order_corr)) +
   geom_point(aes(color=Strain), size=2.5) +
   facet_wrap("Strain") +
   theme_bw() +
@@ -115,18 +122,19 @@ ggplot(df, aes(x=Inject_order, y=PA_corrected)) +
 
 This corrected data looks much better. To get a sense for how much better the variability among replicates is, let's compare the replicates for each strain using a boxplot.
 
-**Pivot the data into tidy format and creat the boxplot**
+<br>**Pivot the data into tidy format and create the boxplot**
 
 ```{r}
 
 df_long <- df %>%
-  pivot_longer(cols = c(PA, PA_corrected), 
+  pivot_longer(cols = c(PA, PA_inj_order_corr), 
                names_to = "measurement_type", 
                values_to = "value")
 
 ggplot(df_long, aes(x=Strain, y=value)) +
   geom_boxplot(aes(fill=measurement_type)) +
-  labs(x="", y="corrected peak area", fill=NULL) +
+  labs(x="", y="corrected peak area", fill=NULL, 
+       title='corrected with global injection coefficient') +
   theme_bw() +
   theme(axis.title = element_text(size=14),
         axis.text = element_text(size=12),
@@ -136,15 +144,13 @@ ggplot(df_long, aes(x=Strain, y=value)) +
 
 As expected, the boxplot shows that the variance among replicates is much better after the correction.
 
-### 
+## Further improvements
 
-### Further improvements
+When building linear models, it is critical to examine diagnostic plots that report how well your model fits the data. These plots can reveal issues with the model that are more challenging to identify by assessing model summary statistics alone. The most basic, and often the most informative of these plots is the fitted vs. residuals plot.
 
-When building linear models, it is critical to examine diagnostic plots that report how well your model fits the data. These plots can reveal issues with the model that are more challenging to identify by assessing model summary statistics. The most basic, and often the most informative of these plots is the fitted vs. residuals plot.
+Let's start by plotted fitted values vs. residuals for both the strain_only model and the comb_model.
 
-Let's start by plotted fitted values vs. residuals for both the strain only model and the combined model.
-
-**Make Fitted vs Residuals plots**
+<br>**Make Fitted vs Residuals plots**
 
 ```{r}
 # Get the residuals for this model and plot
@@ -168,13 +174,82 @@ p2 <- ggplot(df, aes(x=PA, y=comb_resid)) +
 plot_grid(p1, p2, ncol = 2)
 ```
 
-Both plots reveal an issue with our models. The funnel-like shape of left plot shows heteroscedasticty where variance scales with the peak area. In the right plot, the overall variance is substantially reduced by included injection order as a predictor, but it is still heteroscedastic: Samples with intermediate peak areas have low variance relative to those with small or large peak areas. This suggests to me that the injection order coefficient that we subtracted away did represent the mean injection order effect, but that this mean was not a good estimate for the effect of injection order on samples with relatively small or large PAs.
+These plots reveal an issue with our models. The funnel-like shape of the left plot shows heteroscedasticity where variance scales with the peak area. In the right plot, the overall variance is substantially reduced by included injection order as a predictor, but it is still heteroscedastic: Samples with intermediate peak areas have low variance relative to those with small or large peak areas. This suggests that the global injection order coefficient that we subtracted was the best average coefficient across all samples, but it may not have been the best coefficient for each sample. In other words, the injection order batch effect might be better modeled with a distinct coefficient for each sample. Let's try this by modeling this batch effect as an interaction term between strain and injection order.
 
-This suggests it may be better to determine an injection order coefficient for each train individually and subtract this coefficient from the peak areas for that strain.
+<br>**Fit a Strain : Inject_order interaction model**
 
 ```{r}
 
 interaction_model <- lm(PA ~ 0 + Strain + Strain:Inject_order, data = df)
-
 summary(interaction_model)
 ```
+
+All of the interaction terms are significant with different coefficients. This suggests that indeed this model fits better than the previous model with the global injection order parameter. The higher adjusted R^2^ value of this model confirm this.
+
+Let's now try correcting the peak areas with this interaction model.
+
+<br>**Correct the peak areas using the better fitting model**
+
+```{r}
+
+# Extract the coefficients from the model and put them in a df
+strains <- paste0("Strain_", 1:5)
+coefs <- coef(interaction_model)[6:10]
+coef_table <- data.frame(Strain = strains, inj_x_strain_coef = coefs)
+
+# Add the coefficients to df and calculate corrected peak areas
+df <- df %>%
+  left_join(coef_table, by = "Strain") %>%
+  mutate(
+    inj_x_strain_value = inj_x_strain_coef * Inject_order,
+    inj_x_strain_corr_PA = PA - inj_x_strain_value) 
+
+```
+
+<br>**Assess the Fitted vs Residuals plot for the interaction model**
+
+```{r}
+
+# get the residuals
+df$strain_x_inj_resid <- residuals(interaction_model)
+
+# make the plot
+p3 <- ggplot(df, aes(x=PA, y=strain_x_inj_resid)) +
+  geom_point(size=2) +
+  ylim(-70,70) +
+  theme_bw() +
+  labs(title='strain_x_injection_order_model', y='residual')
+
+
+# plot alongside the comb_plot residuals
+# Combine plots
+plot_grid(p2, p3, ncol = 2)
+```
+
+The Fitted vs Residuals plot looks better the interaction model with smaller overall residuals and less heteroscedasticity.
+
+<br>**Compare all peaks areas via boxplot**
+
+```{r}
+
+# pivot the df
+df_long <- df %>%
+  pivot_longer(cols = c(PA, PA_inj_order_corr, inj_x_strain_corr_PA), 
+               names_to = "measurement_type", 
+               values_to = "value")
+
+# order the plotting variables
+df_long <- mutate(df_long, measurement_type = factor(measurement_type, 
+                  levels = c("PA", "PA_inj_order_corr", "inj_x_strain_corr_PA")))
+
+# make the plot
+ggplot(df_long, aes(x=Strain, y=value)) +
+  geom_boxplot(aes(fill=measurement_type)) +
+  labs(x="", y="corrected peak area", fill=NULL) +
+  theme_bw() +
+  theme(axis.title = element_text(size=14),
+        axis.text = element_text(size=12),
+        legend.text = element_text(size = 12)) 
+```
+
+While the boxplot for the two corrected datasets are similar, the Strain_1 and Strain_5 samples clearly have reduced variance when corrected with the interaction model.
