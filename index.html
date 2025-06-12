@@ -113,9 +113,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 <p><br><strong>Import the data and view the structure</strong></p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"./yeast_3DG_dataset.csv"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> df <span class="sc">%&gt;%</span> <span class="fu">mutate</span>(<span class="at">PA =</span> <span class="st">`</span><span class="at">3-DG</span><span class="st">`</span> <span class="sc">+</span> Inject_order<span class="sc">*</span><span class="fl">1.05</span> <span class="sc">+</span> (<span class="fu">runif</span>(<span class="dv">1</span>) <span class="sc">*</span> <span class="dv">20</span>)) </span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu">kbl</span>(<span class="fu">head</span>(df)) <span class="sc">%&gt;%</span> <span class="fu">kable_styling</span>(<span class="at">full_width=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">"./data.csv"</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">kbl</span>(<span class="fu">head</span>(df)) <span class="sc">%&gt;%</span> <span class="fu">kable_styling</span>(<span class="at">full_width=</span><span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
 <table class="table caption-top table-sm table-striped small" data-quarto-postprocess="true">
 <thead>
@@ -123,7 +122,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th style="text-align: right;" data-quarto-table-cell-role="th">Inject_order</th>
 <th style="text-align: left;" data-quarto-table-cell-role="th">Strain</th>
 <th style="text-align: right;" data-quarto-table-cell-role="th">Replicate</th>
-<th style="text-align: right;" data-quarto-table-cell-role="th">3-DG</th>
 <th style="text-align: right;" data-quarto-table-cell-role="th">PA</th>
 </tr>
 </thead>
@@ -132,43 +130,37 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td style="text-align: right;">1</td>
 <td style="text-align: left;">Strain_1</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">104.96714</td>
-<td style="text-align: right;">120.7879</td>
+<td style="text-align: right;">121.4272</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">2</td>
 <td style="text-align: left;">Strain_2</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">199.52016</td>
-<td style="text-align: right;">216.3909</td>
+<td style="text-align: right;">217.0302</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">3</td>
 <td style="text-align: left;">Strain_3</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">309.26304</td>
-<td style="text-align: right;">327.1838</td>
+<td style="text-align: right;">327.8231</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">4</td>
 <td style="text-align: left;">Strain_4</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">420.89253</td>
-<td style="text-align: right;">439.8633</td>
+<td style="text-align: right;">440.5026</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">5</td>
 <td style="text-align: left;">Strain_5</td>
 <td style="text-align: right;">1</td>
-<td style="text-align: right;">506.70680</td>
-<td style="text-align: right;">526.7276</td>
+<td style="text-align: right;">527.3669</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">6</td>
 <td style="text-align: left;">Strain_1</td>
 <td style="text-align: right;">2</td>
-<td style="text-align: right;">99.87814</td>
-<td style="text-align: right;">120.9489</td>
+<td style="text-align: right;">121.5882</td>
 </tr>
 </tbody>
 </table>
@@ -226,17 +218,17 @@ Residuals:
 
 Coefficients:
                Estimate Std. Error t value Pr(&gt;|t|)    
-StrainStrain_1   145.54      11.21   12.98 6.33e-16 ***
-StrainStrain_2   258.00      11.21   23.01  &lt; 2e-16 ***
-StrainStrain_3   369.02      11.21   32.91  &lt; 2e-16 ***
-StrainStrain_4   473.64      11.21   42.24  &lt; 2e-16 ***
-StrainStrain_5   590.49      11.21   52.66  &lt; 2e-16 ***
+StrainStrain_1   146.18      11.21   13.04 5.49e-16 ***
+StrainStrain_2   258.64      11.21   23.07  &lt; 2e-16 ***
+StrainStrain_3   369.66      11.21   32.97  &lt; 2e-16 ***
+StrainStrain_4   474.28      11.21   42.30  &lt; 2e-16 ***
+StrainStrain_5   591.13      11.21   52.72  &lt; 2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Residual standard error: 33.64 on 40 degrees of freedom
-Multiple R-squared:  0.9937,    Adjusted R-squared:  0.9929 
-F-statistic:  1268 on 5 and 40 DF,  p-value: &lt; 2.2e-16</code></pre>
+Multiple R-squared:  0.9937,    Adjusted R-squared:  0.993 
+F-statistic:  1272 on 5 and 40 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <p>Next, let’s see if a model that adds injection order as a global batch effect fits the data better.</p>
@@ -255,18 +247,18 @@ Residuals:
 
 Coefficients:
                Estimate Std. Error t value Pr(&gt;|t|)    
-StrainStrain_1  97.8811     5.3720   18.22   &lt;2e-16 ***
-StrainStrain_2 208.0667     5.4619   38.09   &lt;2e-16 ***
-StrainStrain_3 316.8224     5.5544   57.04   &lt;2e-16 ***
-StrainStrain_4 419.1666     5.6494   74.20   &lt;2e-16 ***
-StrainStrain_5 533.7485     5.7468   92.88   &lt;2e-16 ***
+StrainStrain_1  98.5204     5.3720   18.34   &lt;2e-16 ***
+StrainStrain_2 208.7059     5.4619   38.21   &lt;2e-16 ***
+StrainStrain_3 317.4616     5.5544   57.16   &lt;2e-16 ***
+StrainStrain_4 419.8059     5.6494   74.31   &lt;2e-16 ***
+StrainStrain_5 534.3877     5.7468   92.99   &lt;2e-16 ***
 Inject_order     2.2696     0.1505   15.08   &lt;2e-16 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Residual standard error: 13.03 on 39 degrees of freedom
 Multiple R-squared:  0.9991,    Adjusted R-squared:  0.9989 
-F-statistic:  7076 on 6 and 39 DF,  p-value: &lt; 2.2e-16</code></pre>
+F-statistic:  7097 on 6 and 39 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <p>The residuals are much smaller in the combined model and the adjusted R<sup>2</sup> is higher. This tells us that the model with both strain and a global injection order paramater as predictors fits the data better. We can confirm this with an ANOVA test. We use the ANOVA test here because the strain_only_model is a subset of the comb_model (you can get the strain_only_model by setting the Inject_order parameter to 0 in the comb_model). Note that the anova function will only tell us if the two models are significantly different, i.e.&nbsp;one fits the data significantly better than the other. If we get a significant p-value, this indicates that the model with more parameters is indeed a better fit.</p>
@@ -386,11 +378,11 @@ Residuals:
 
 Coefficients:
                             Estimate Std. Error t value Pr(&gt;|t|)    
-StrainStrain_1              115.1359     6.4949  17.727  &lt; 2e-16 ***
-StrainStrain_2              213.2594     6.7208  31.731  &lt; 2e-16 ***
-StrainStrain_3              323.3745     6.9493  46.533  &lt; 2e-16 ***
-StrainStrain_4              411.9238     7.1802  57.369  &lt; 2e-16 ***
-StrainStrain_5              507.7289     7.4133  68.489  &lt; 2e-16 ***
+StrainStrain_1              115.7752     6.4949  17.825  &lt; 2e-16 ***
+StrainStrain_2              213.8987     6.7208  31.826  &lt; 2e-16 ***
+StrainStrain_3              324.0138     6.9493  46.625  &lt; 2e-16 ***
+StrainStrain_4              412.5630     7.1802  57.458  &lt; 2e-16 ***
+StrainStrain_5              508.3681     7.4133  68.575  &lt; 2e-16 ***
 StrainStrain_1:Inject_order   1.4480     0.2635   5.496 3.57e-06 ***
 StrainStrain_2:Inject_order   2.0336     0.2635   7.718 4.63e-09 ***
 StrainStrain_3:Inject_order   1.9848     0.2635   7.533 7.95e-09 ***
@@ -401,7 +393,7 @@ Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 Residual standard error: 10.2 on 35 degrees of freedom
 Multiple R-squared:  0.9995,    Adjusted R-squared:  0.9994 
-F-statistic:  6928 on 10 and 35 DF,  p-value: &lt; 2.2e-16</code></pre>
+F-statistic:  6948 on 10 and 35 DF,  p-value: &lt; 2.2e-16</code></pre>
 </div>
 </div>
 <p>All of the interaction terms are significant with different coefficients. This suggests that indeed this model fits better than the previous model with the global injection order parameter. The higher adjusted R<sup>2</sup> value of this model confirm this.</p>

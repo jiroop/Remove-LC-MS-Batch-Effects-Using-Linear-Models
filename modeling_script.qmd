@@ -29,8 +29,7 @@ library(cowplot)
 ```{r}
 #| message: false
 
-df <- read_csv("./yeast_3DG_dataset.csv")
-df <- df %>% mutate(PA = `3-DG` + Inject_order*1.05 + (runif(1) * 20)) 
+df <- read_csv("./data.csv")
 kbl(head(df)) %>% kable_styling(full_width=FALSE)
 ```
 
